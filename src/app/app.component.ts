@@ -3,7 +3,7 @@ import { sigma } from 'sigma';
 import { neo4jGraph } from './neosigma';
 import * as _ from 'lodash';
 import { isEmpty } from 'lodash';
-import { environment } from '../environments/environment';
+import { neoToSigmaConfig } from './neo4j-config';
 import "./sigma-custom-render/sigma.canvas.utils.js";
 import "./sigma-custom-render/sigma.canvas.hovers.def.js";
 import "./sigma-custom-render/sigma.canvas.nodes.def.js";
@@ -14,8 +14,8 @@ import "./sigma-custom-render/sigma.extend.graph.js";
 
 declare const sigma: any;
 
-const neo4jConfig = environment.neo4jConfig;
-const neo4jStyle = environment.neo4jStyle;
+const neo4jConfig = neoToSigmaConfig.neo4jConfig;
+const neo4jStyle = neoToSigmaConfig.neo4jStyle;
 
 @Component({
   selector: 'app-root',
@@ -37,11 +37,6 @@ export class AppComponent implements OnInit {
     this.createGraph(true);
   }
 
-  selectDate(date: any) {
-    this.slider.value = date.value;
-    this.createGraph();
-
-  }
 
   createGraph(init?: boolean) {
     if (this.sigIns) {
@@ -80,7 +75,6 @@ export class AppComponent implements OnInit {
 
     neo4jGraph(neo4jConfig, neo4jStyle, 'MATCH (n)-[r]->(m) RETURN n,r,m LIMIT $limit', { limit: 200 }).then(function (graph) {
       if (init) {
-
         that.youngestEdge = Math.max(...graph["edges"].map(edge => {
           if (edge.properties && edge.properties.dateTime) {
             return Date.parse(edge.properties.dateTime)
@@ -113,5 +107,10 @@ export class AppComponent implements OnInit {
       node.label = node.labels.length > 1 ? node.properties.host : node.labels[0];
       return node;
     })
+  }
+  selectDate(date: any) {
+    this.slider.value = date.value;
+    this.createGraph();
+
   }
 }
