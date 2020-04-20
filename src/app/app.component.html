@@ -1,0 +1,24 @@
+<article class="graph">
+  <section class="graph__params">
+    <mat-card>
+      <mat-card-title>Graph Settings</mat-card-title>
+      <mat-checkbox [(ngModel)]="isLabelsDisplayed" (change)="createGraph(true)">Display Labels</mat-checkbox>
+      <p>
+        <span> Date Slider : </span>
+      </p>
+      {{slider.value | date }}
+
+      <mat-slider #slider [min]="oldestEdge" [max]="youngestEdge" thumbLabel=false (change)="selectDate($event)">
+      </mat-slider>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-title>Node Properties</mat-card-title>
+      <mat-card-subtitle>Hover over a node to see its properties</mat-card-subtitle>
+      <p *ngIf="selectedNode?.labels"> <span> Labels : </span> {{selectedNode.labels}}</p>
+      <p *ngIf="selectedNode?.properties"> <span> Properties:</span> {{selectedNode.properties | json}}</p>
+    </mat-card>
+
+  </section>
+  <section class="graph__container" id="sigma-container"></section>
+</article>
