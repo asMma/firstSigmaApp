@@ -2,8 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { sigma } from 'sigma';
 import { neo4jGraph } from './neosigma';
 import * as _ from 'lodash';
-import { isEmpty, assign } from 'lodash';
-
+import { isEmpty } from 'lodash';
+import { environment } from '../environments/environment';
 import "./sigma-custom-render/sigma.canvas.utils.js";
 import "./sigma-custom-render/sigma.canvas.hovers.def.js";
 import "./sigma-custom-render/sigma.canvas.nodes.def.js";
@@ -12,44 +12,10 @@ import "./sigma-custom-render/sigma.canvas.edgehovers.paracurve.js";
 import "./sigma-custom-render/sigma.canvas.edges.labels.paracurve.js";
 import "./sigma-custom-render/sigma.extend.graph.js";
 
-
-
 declare const sigma: any;
-// declare const neo4jGraph: any;
-const neo4jConfig = {
-  url: 'bolt://localhost:7687',
-  user: 'admin',
-  password: 'admin',
-  driver: {
-    // all the driver configuration (optional)
-  }
-}
 
-
-const neo4jStyle = {
-  nodes: { // Map of label
-    NETWORK: {
-      color: '#ff0066', // Color of the node
-      size: 50, // Size of the node
-    },
-    APPLICATION: {
-      color: '#0000ff', 
-      size: 50,
-    },
-    AGENCE: {
-      color: '#8000ff', 
-      size: 50,
-    },
-    COLLABORATEUR: {
-      color: '#d0d0e1', 
-      size: 50,
-    }
-  },
-  edges: {
-    color: '#d9d9d9',
-    size: 1,
-  }
-};
+const neo4jConfig = environment.neo4jConfig;
+const neo4jStyle = environment.neo4jStyle;
 
 @Component({
   selector: 'app-root',
