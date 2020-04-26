@@ -8,10 +8,12 @@ import {MatSliderModule} from '@angular/material/slider';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
+import { TemplateGraphComponent } from './template-graph/template-graph.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    TemplateGraphComponent
   ],
   imports: [
     BrowserModule,
