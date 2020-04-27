@@ -1,25 +1,42 @@
 <article class="graph">
   <section class="graph__params">
+    <!-- START Graph settings card -->
     <mat-card>
       <mat-card-title>Graph Settings</mat-card-title>
-      <mat-checkbox [(ngModel)]="isLabelsDisplayed" (change)="createGraph(true)">Display Labels</mat-checkbox>
-      <p>
-        <span> Date Slider : </span>
-      </p>
-      {{slider.value | date }}
-
-      <mat-slider #slider [min]="oldestEdge" [max]="youngestEdge" thumbLabel=false (change)="selectDate($event)">
+      <mat-checkbox [(ngModel)]="isLabelsDisplayed" (change)="createGraph()">Display Labels</mat-checkbox>
+      <p> {{slider.value | date }} </p>
+      <mat-form-field class="speed-selector">
+        <mat-label>Select speed</mat-label>
+        <mat-select [(value)]="selectedSpeed">
+          <mat-option [value]="0.01"> Slow </mat-option>
+          <mat-option [value]="0.05"> Normal </mat-option>
+          <mat-option [value]="0.1"> Fast </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-slider #slider [min]="oldestEdge" [max]="youngestEdge" thumbLabel=false (change)="selectDate($event.value)">
       </mat-slider>
+      <div class="icons-container">
+        <button mat-icon-button color="accent" (click)="playOrPause()">
+          <mat-icon class="player-icon" *ngIf="isPaused" aria-hidden="false" aria-label="Play_icon">play_circle_filled
+          </mat-icon>
+          <mat-icon class="player-icon" *ngIf="!isPaused" aria-hidden="false" aria-label="Play_icon">pause_circle_filled
+          </mat-icon>
+        </button>
+      </div>
     </mat-card>
+    <!-- END Graph settings card -->
 
+    <!-- START Node properties card -->
     <mat-card>
       <mat-card-title>Node Properties</mat-card-title>
       <mat-card-subtitle>Hover over a node to see its properties</mat-card-subtitle>
       <p *ngIf="selectedNode?.labels"> <span> Labels : </span> {{selectedNode.labels}}</p>
       <p *ngIf="selectedNode?.properties"> <span> Properties:</span> {{selectedNode.properties | json}}</p>
     </mat-card>
+    <!-- END Node properties card -->
+  </section>
 
-  </section> 
-<section class="graph__container" id="sigma-container"></section>
-  <!-- <app-template-graph></app-template-graph> -->
+  <!-- START Graph container -->
+  <section class="graph__container" id="sigma-container"></section>
+  <!-- END Graph container -->
 </article>

@@ -31,6 +31,20 @@
         span {
             font-weight: bold;
         }
+        .icons-container {
+           text-align: center;
+           .player-icon{
+                width: 40px;
+                height:40px;
+                font-size: 40px;
+                line-height: normal;
+                
+            }
+        }
+        .speed-selector {
+            width: 100px;
+        }
+      
     }
 }
 ::ng-deep .mat-checkbox-layout {

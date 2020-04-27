@@ -32,15 +32,19 @@ export class AppComponent implements OnInit {
 
   initGraph: any;
 
+  isPaused = true;
   isLabelsDisplayed = false;
+  interval: any;
+
+  selectedSpeed = 0.05;
   @ViewChild('slider') slider;
 
   ngOnInit() {
-    this.createGraph(true);
+    this.createGraph();
   }
 
 
-  createGraph(init?: boolean) {
+  createGraph() {
     if (this.sigIns) {
       this.sigIns.kill();
     }
@@ -61,18 +65,17 @@ export class AppComponent implements OnInit {
           defaultHoverLabelBGColor: '#000000',
           drawEdgeLabels: this.isLabelsDisplayed || false,
           drawLabels: this.isLabelsDisplayed || false,
-
           //scalingMode: 'outside',
           //labelSize: 'proportional'
           // sideMargin: -5
         }
       }
     );
-    let that = this;
-    this.sigIns.bind('overNode', function (e) {  that.selectedNode = e.data.node;});
+    
+    const that = this;
+    this.sigIns.bind('overNode', function (e) { that.selectedNode = e.data.node; });
 
-
-    this.neoToSig(init, that).then(() => { this.drawGraph();});
+    this.neoToSig(this).then(() => { that.drawGraph(); });
   }
 
   // Choose which node label to display
@@ -83,9 +86,44 @@ export class AppComponent implements OnInit {
     })
   }
 
+
+  // Fetch neo data
+  neoToSig(that: any) {
+    return neo4jGraph(neo4jConfig, neo4jStyle,
+      'MATCH (n)-[r]->(m) RETURN n,r,m LIMIT $limit', { limit: 200 })
+      .then(function (graph) {
+        that.youngestEdge = Math.max(...graph["edges"].map(edge => {
+          if (edge.properties && edge.properties.dateTime) {
+            return Date.parse(edge.properties.dateTime)
+          } else return null
+        }));
+
+        that.oldestEdge = Math.min(...graph["edges"].map(edge => {
+          if (edge.properties && edge.properties.dateTime) {
+            return Date.parse(edge.properties.dateTime)
+          } else return null
+        }).filter(ed => ed));
+        that.slider.value = that.youngestEdge;
+        that.initGraph = graph;
+      })
+  }
+
+  // Draw graph
+  drawGraph() {
+    this.mapNodesName(this.initGraph['nodes']);
+    this.sigIns.graph.read(this.initGraph);
+    // Ask sigma to draw it
+    this.sigIns.refresh();
+    // enable drag'n'drop
+    sigma.plugins.dragNodes(this.sigIns, this.sigIns.renderers[0]);
+    // // start layout
+    this.sigIns.startForceAtlas2();
+    setTimeout(() => { this.sigIns.stopForceAtlas2() }, 1000);
+  }
+  
   // Filter Graph
   selectDate(date: any) {
-    this.slider.value = date.value;
+    this.slider.value = date;
     this.initGraph['edges'].forEach(edge => {
       if (this.slider.value < (Date.parse(edge.properties.dateTime))) {
         if (this.sigIns.graph.edges(edge['id'])) {
@@ -101,40 +139,23 @@ export class AppComponent implements OnInit {
     this.sigIns.refresh();
   }
 
-  // Fetch neo data
-  neoToSig(init: boolean, that: any) {
-    return neo4jGraph(neo4jConfig, neo4jStyle, 'MATCH (n)-[r]->(m) RETURN n,r,m LIMIT $limit', { limit: 200 }).then(function (graph) {
-      if (init) {
-        that.youngestEdge = Math.max(...graph["edges"].map(edge => {
-          if (edge.properties && edge.properties.dateTime) {
-            return Date.parse(edge.properties.dateTime)
-          } else return null
-        }));
+  playOrPause() {
+    this.isPaused = !this.isPaused;
+    if (!this.isPaused) {
+      this.interval = setInterval(() => {
+        if (this.oldestEdge <= this.slider.value) {
+          this.slider.value = this.slider.value - ((this.youngestEdge - this.oldestEdge) * this.selectedSpeed);
+          this.selectDate(this.slider.value);
+        } else {   // If minimum is reached
+          clearInterval(this.interval);
+          this.slider.value = this.youngestEdge;
+          this.isPaused = true;
+          this.selectDate(this.slider.value);
+        }
+      }, 100);
+    } else {
+      if (this.interval) { clearInterval(this.interval) }
+    }
 
-        that.oldestEdge = Math.min(...graph["edges"].map(edge => {
-          if (edge.properties && edge.properties.dateTime) {
-            return Date.parse(edge.properties.dateTime)
-          } else return null
-        }).filter(ed => ed));
-        that.slider.value = that.youngestEdge;
-      } else {
-        graph['edges'] = graph['edges'].filter(edge => (Date.parse(edge.properties.dateTime) <= that.slider.value) || isEmpty(edge.properties));
-
-      }
-      that.initGraph = graph;
-    })
-  }
-
-  // Draw graph
-  drawGraph() {
-    this.mapNodesName(this.initGraph['nodes']);
-    this.sigIns.graph.read(this.initGraph);
-    // Ask sigma to draw it
-    this.sigIns.refresh();
-    // enable drag'n'drop
-    sigma.plugins.dragNodes(this.sigIns, this.sigIns.renderers[0]);
-    // // start layout
-    this.sigIns.startForceAtlas2();
-    setTimeout(() => { this.sigIns.stopForceAtlas2() }, 2000);
   }
 }
